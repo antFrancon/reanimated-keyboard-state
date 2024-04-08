@@ -7,7 +7,7 @@
 
 import React from 'react';
 import {
-  SafeAreaView,
+  KeyboardAvoidingView,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -15,18 +15,43 @@ import {
   View,
   useColorScheme,
 } from 'react-native';
+import {
+  SafeAreaProvider,
+  SafeAreaView,
+  initialWindowMetrics,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 
-import {Colors, Header} from 'react-native/Libraries/NewAppScreen';
+import {Colors} from 'react-native/Libraries/NewAppScreen';
 
 function App(): React.JSX.Element {
   const isDarkMode = useColorScheme() === 'dark';
   const backgroundColor = isDarkMode ? Colors.darker : Colors.lighter;
 
   const styles = StyleSheet.create({
-    root: {
-      flex: 1,
-      backgroundColor,
-    },
+    root: {flex: 1, backgroundColor},
+    container: {flex: 1},
+  });
+
+  return (
+    <SafeAreaProvider style={styles.root} initialMetrics={initialWindowMetrics}>
+      <StatusBar
+        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
+        backgroundColor={backgroundColor}
+      />
+      <SafeAreaView style={styles.container}>
+        <AppContent isDarkMode={isDarkMode} />
+      </SafeAreaView>
+    </SafeAreaProvider>
+  );
+}
+
+interface AppContentProps {
+  isDarkMode: boolean;
+}
+
+const AppContent: React.FC<AppContentProps> = ({isDarkMode}) => {
+  const styles = StyleSheet.create({
     container: {
       flex: 1,
     },
@@ -45,22 +70,22 @@ function App(): React.JSX.Element {
     },
   });
 
+  const topInset = useSafeAreaInsets().top;
+  const keyboardVerticalOffset = topInset + 8;
+
   return (
-    <SafeAreaView style={styles.root}>
-      <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={backgroundColor}
-      />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        contentContainerStyle={styles.container}>
-        <Header />
-        <View style={styles.content}>
+    <ScrollView
+      contentInsetAdjustmentBehavior="automatic"
+      contentContainerStyle={styles.container}>
+      <View style={styles.content}>
+        <KeyboardAvoidingView
+          behavior="padding"
+          keyboardVerticalOffset={keyboardVerticalOffset}>
           <TextInput placeholder="Type here..." style={styles.input} />
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+        </KeyboardAvoidingView>
+      </View>
+    </ScrollView>
   );
-}
+};
 
 export default App;
