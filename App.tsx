@@ -11,10 +11,18 @@ import {
   ScrollView,
   StatusBar,
   StyleSheet,
+  Text,
   TextInput,
   View,
   useColorScheme,
 } from 'react-native';
+import Animated, {
+  KeyboardState,
+  SharedValue,
+  useAnimatedKeyboard,
+  useAnimatedProps,
+  useAnimatedStyle,
+} from 'react-native-reanimated';
 import {
   SafeAreaProvider,
   SafeAreaView,
@@ -38,6 +46,7 @@ function App(): React.JSX.Element {
       <StatusBar
         barStyle={isDarkMode ? 'light-content' : 'dark-content'}
         backgroundColor={backgroundColor}
+        translucent
       />
       <SafeAreaView style={styles.container}>
         <AppContent isDarkMode={isDarkMode} />
@@ -81,6 +90,7 @@ const AppContent: React.FC<AppContentProps> = ({isDarkMode}) => {
         <KeyboardAvoidingView
           behavior="padding"
           keyboardVerticalOffset={keyboardVerticalOffset}>
+          <Toolbar />
           <TextInput placeholder="Type here..." style={styles.input} />
         </KeyboardAvoidingView>
       </View>
@@ -88,4 +98,47 @@ const AppContent: React.FC<AppContentProps> = ({isDarkMode}) => {
   );
 };
 
+const Toolbar: React.FC = () => {
+  const styles = StyleSheet.create({
+    toolbar: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      height: 100,
+      backgroundColor: 'red',
+      transform: [{translateY: -120}],
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+  });
+
+  const keyboard = useAnimatedKeyboard({isStatusBarTranslucentAndroid: true});
+  const animatedProps = useAnimatedProps(() => ({
+    pointerEvents: isKeyboardOpen(keyboard.state)
+      ? ('box-none' as const)
+      : ('none' as const),
+  }));
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: isKeyboardOpen(keyboard.state) ? 1 : 0,
+  }));
+
+  return (
+    <Animated.View
+      style={[styles.toolbar, animatedStyle]}
+      animatedProps={animatedProps}>
+      <Text>Toolbar visible when keyboard is open</Text>
+    </Animated.View>
+  );
+};
+
+/* export */
 export default App;
+
+/* utils */
+function isKeyboardOpen(state: SharedValue<KeyboardState>): boolean {
+  'worklet';
+  return (
+    state.value === KeyboardState.OPEN || state.value === KeyboardState.OPENING
+  );
+}
