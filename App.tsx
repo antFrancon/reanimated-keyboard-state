@@ -19,6 +19,7 @@ import {
 import Animated, {
   KeyboardState,
   SharedValue,
+  runOnJS,
   useAnimatedKeyboard,
   useAnimatedProps,
   useAnimatedStyle,
@@ -115,12 +116,12 @@ const Toolbar: React.FC = () => {
 
   const keyboard = useAnimatedKeyboard({isStatusBarTranslucentAndroid: true});
   const animatedProps = useAnimatedProps(() => ({
-    pointerEvents: isKeyboardOpen(keyboard.state)
+    pointerEvents: isKeyboardOpen(keyboard.state, keyboard.height)
       ? ('box-none' as const)
       : ('none' as const),
   }));
   const animatedStyle = useAnimatedStyle(() => ({
-    opacity: isKeyboardOpen(keyboard.state) ? 1 : 0,
+    opacity: isKeyboardOpen(keyboard.state, keyboard.height) ? 1 : 0,
   }));
 
   return (
@@ -136,9 +137,19 @@ const Toolbar: React.FC = () => {
 export default App;
 
 /* utils */
-function isKeyboardOpen(state: SharedValue<KeyboardState>): boolean {
+function isKeyboardOpen(
+  state: SharedValue<KeyboardState>,
+  height: SharedValue<number>,
+): boolean {
   'worklet';
+  runOnJS(debug)('Keyboard State', state.value);
+  runOnJS(debug)('Keyboard Height', height.value);
   return (
     state.value === KeyboardState.OPEN || state.value === KeyboardState.OPENING
   );
+}
+
+/* debug */
+function debug(label: string, value: string | number): void {
+  console.log('🐞', label, ':', value);
 }
